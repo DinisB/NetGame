@@ -1,0 +1,208 @@
+namespace NetGame.Assets.Scripts
+{
+    using System.Collections;
+    using UnityEngine;
+    using UnityEngine.InputSystem;
+
+    public class PlayerMovement : MonoBehaviour
+    {
+        [SerializeField] private bool iAmASandBag = false;
+
+        private PlayerVisuals playerVisuals;
+        private CharacterData characterData;
+        private InputAction horizontalAction;
+        private InputAction verticalAction;
+        private InputAction jumpAction;
+        private InputAction quickRollAction;
+        private Rigidbody2D rb;
+        private BoxCollider2D boxCollider;
+        private BoxCollider2D triggerCol;
+        private float speed;
+        private bool canMove;
+        private float moveInput;
+        private bool grounded;
+        private bool defending;
+
+        [SerializeField]
+        protected Transform groundCheck;
+        [SerializeField, Range(0.1f, 5.0f)]
+        protected float groundCheckRadius = 2.0f;
+        [SerializeField]
+        protected LayerMask groundCheckLayers;
+        [SerializeField]
+        protected LayerMask platformLayerMask;
+        private bool canRoll;
+        private bool isRolling;
+
+        // Start is called once before the first execution of Update after the MonoBehaviour is created
+        void Start()
+        {
+            canMove = true;
+            canRoll = true;
+            isRolling = false;
+            rb = GetComponent<Rigidbody2D>();
+            boxCollider = GetComponent<BoxCollider2D>();
+            triggerCol = GetComponent<Player>().GetTriggerCol();
+            horizontalAction = InputSystem.actions["Player/Horizontal"];
+            verticalAction = InputSystem.actions["Player/Vertical"];
+            jumpAction = InputSystem.actions["Player/Jump"];
+            quickRollAction = InputSystem.actions["Player/Quick Roll"];
+            characterData = GetComponent<Player>().GetCharacterData();
+            playerVisuals = GetComponent<Player>().GetPlayerVisuals();
+            speed = characterData.moveSpeed;
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            if (iAmASandBag) return;
+
+            moveInput = horizontalAction.ReadValue<float>();
+            HandleMovement();
+            HandleJump();
+
+            if (quickRollAction.triggered && (moveInput > 0.1f || moveInput < -0.1f) && grounded)
+            {
+                QuickRoll();
+            }
+
+            Defense();
+        }
+
+        void FixedUpdate()
+        {
+            ComputeGrounded();
+        }
+
+        protected void Defense()
+        {
+            if (quickRollAction.IsPressed() && (moveInput < 0.1f || moveInput > -0.1f) && !isRolling && grounded)
+            {
+                StartCoroutine(DefenseTimer());
+            }
+
+            if (defending)
+            {
+                canMove = false;
+            }
+            else { canMove = true; }
+        }
+
+        protected void HandleMovement()
+        {
+            if (!canMove || isRolling) return;
+
+            rb.linearVelocity = new Vector2(moveInput * speed, rb.linearVelocityY);
+
+            if (moveInput > 0)
+            {
+                playerVisuals.FlipSprite(true);
+            }
+            else if (moveInput < 0)
+            {
+                playerVisuals.FlipSprite(false);
+            }
+        }
+
+        protected void HandleJump()
+        {
+            if (!canMove || !grounded) return;
+            if (rb.linearVelocityY > 0.1f) return;
+
+            if (jumpAction.triggered)
+            {
+                if (verticalAction.ReadValue<float>() < -0.5f)
+                {
+                    StartCoroutine(FallFromFloor());
+                    return;
+                }
+                rb.AddForce(Vector2.up * characterData.jumpForce, ForceMode2D.Impulse);
+            }
+        }
+
+        public void HurtJump(float direction)
+        {
+            rb.AddForce(new Vector2(-direction * 2, characterData.jumpForce / 2), ForceMode2D.Impulse);
+        }
+
+        protected void ComputeGrounded()
+        {
+            Collider2D collider = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundCheckLayers);
+
+            if (collider != null)
+            {
+                grounded = true;
+            }
+            else
+            {
+                grounded = false;
+            }
+        }
+
+        void OnDrawGizmos()
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+        }
+
+        IEnumerator FallFromFloor()
+        {
+            Collider2D collider = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundCheckLayers);
+            if ((platformLayerMask.value & (1 << collider.gameObject.layer)) == 0) yield break;
+
+            canMove = false;
+            boxCollider.enabled = false;
+            yield return new WaitForSeconds(0.35f);
+            boxCollider.enabled = true;
+            canMove = true;
+        }
+
+        IEnumerator DefenseTimer()
+        {
+            if (defending) yield break;
+
+            defending = true;
+            yield return new WaitForSeconds(0.5f);
+            defending = false;
+        }
+
+        protected void QuickRoll()
+        {
+            if (!canRoll) return;
+            canRoll = false;
+            isRolling = true;
+            rb.AddForce(new Vector2(moveInput * speed * 3, 0), ForceMode2D.Impulse);
+            StartCoroutine(ResetRoll());
+        }
+
+        private IEnumerator ResetRoll()
+        {
+            triggerCol.enabled = false;
+            yield return new WaitForSeconds(0.3f);
+            isRolling = false;
+            triggerCol.enabled = true;
+            yield return new WaitForSeconds(0.2f);
+            canRoll = true;
+        }
+
+        public bool IsDefending()
+        {
+            return defending;
+        }
+
+        public bool IsRolling()
+        {
+            return isRolling;
+        }
+
+        public void SetCanMove(bool canMove)
+        {
+            this.canMove = canMove;
+        }
+
+        public bool CheckIfIAmASandBag()
+        {
+            return iAmASandBag;
+        }
+    }
+}
