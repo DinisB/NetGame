@@ -31,7 +31,8 @@ namespace NetGame.Assets.Scripts
 
         void DetectAttack()
         {
-            Collider2D hit = Physics2D.OverlapBox(player.GetTriggerCol().bounds.center, player.GetTriggerCol().bounds.size, 0f, LayerMask.GetMask("Attack"));
+            Collider2D hit = Physics2D.OverlapBox(player.GetTriggerCol().bounds.center, 
+            player.GetTriggerCol().bounds.size, 0f, LayerMask.GetMask("Attack"));
 
             if (hit != null && !hurt && !playerMovement.IsDefending() && !playerMovement.IsRolling())
             {
@@ -41,7 +42,7 @@ namespace NetGame.Assets.Scripts
                 }
                 hurt = true;
                 Debug.Log("Player hit!");
-                if (player.GetBalls() > 0)
+                if (player.GetMatchManager().GetScore(player.GetTeam()) > 0)
                 {
                     GameObject ball = PhotonNetwork.Instantiate("Ball", transform.position, Quaternion.identity);
                     ball.GetComponent<Ball>().SetTeam(player.GetTeam());
@@ -73,7 +74,9 @@ namespace NetGame.Assets.Scripts
 
                 if (!hurt && !player.GetPlayerMovement().CheckIfIAmASandBag())
                 {
-                    Debug.Log(collision.gameObject.GetComponent<Ball>().GetTeam() != player.GetTeam() ? "Got a ball!" : "Recovered your ball!");
+                    Debug.Log(collision.gameObject.GetComponent<Ball>().GetTeam() != player.GetTeam()
+                    ? "Apanhas-te uma bola" : "Recuperas-te uma bola");
+
                     PhotonNetwork.Destroy(collision.gameObject);
                     player.AddBall();
                 }

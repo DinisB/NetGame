@@ -7,19 +7,19 @@ namespace NetGame.Assets.Scripts
     {
         [SerializeField]
         private Team team;
-        [SerializeField] private int balls;
-        private static readonly int maxBalls = 200;
+
 
         [SerializeField] private CharacterData characterData;
         [SerializeField] private PlayerVisuals playerVisuals;
         [SerializeField] private BoxCollider2D triggerCol;
         [SerializeField] private PlayerMovement playerMovement;
+        private MatchManager matchManager;
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
             if (photonView.IsMine)
             {
-                balls = 100;
+                matchManager = FindFirstObjectByType<MatchManager>();
             }
         }
 
@@ -38,11 +38,11 @@ namespace NetGame.Assets.Scripts
         {
             if (stream.IsWriting)
             {
-                stream.SendNext(balls);
+                stream.SendNext(team);
             }
             else
             {
-                balls = (int)stream.ReceiveNext();
+                team = (Team)stream.ReceiveNext();
             }
         }
 
@@ -50,7 +50,7 @@ namespace NetGame.Assets.Scripts
         {
             if (photonView.IsMine)
             {
-                FindFirstObjectByType<MatchManager>().RemovePlayer(gameObject);
+                matchManager.RemovePlayer(gameObject);
                 PhotonNetwork.Destroy(gameObject);
             }
         }
@@ -87,20 +87,17 @@ namespace NetGame.Assets.Scripts
 
         public void AddBall()
         {
-            balls = Mathf.Clamp(balls + 1, 0, maxBalls);
+            matchManager.AddScore(team);
         }
 
         public void RemoveBall()
         {
-            if (balls > 0)
-            {
-                balls = Mathf.Clamp(balls - 1, 0, maxBalls);
-            }
+            matchManager.RemoveScore(team);
         }
 
-        public int GetBalls()
+        public MatchManager GetMatchManager()
         {
-            return balls;
+            return matchManager;
         }
     }
 }

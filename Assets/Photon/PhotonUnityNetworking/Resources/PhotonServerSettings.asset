@@ -40,6 +40,9 @@ MonoBehaviour:
   - Fire
   - RespawnSpaceship
   - RPC_SetTeam
+  - RPC_SetBalls
+  - RPC_AddScore
+  - RPC_RemoveScore
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
