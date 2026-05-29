@@ -1,8 +1,9 @@
 namespace NetGame.Assets.Scripts
 {
     using UnityEngine;
+    using Photon.Pun;
 
-    public class Player : MonoBehaviour
+    public class Player : MonoBehaviourPun, IPunObservable
     {
         [SerializeField]
         private Team team;
@@ -16,13 +17,42 @@ namespace NetGame.Assets.Scripts
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            balls = 100;
+            if (photonView.IsMine)
+            {
+                balls = 100;
+            }
         }
 
-        // Update is called once per frame
-        void Update()
+        public void SetTeamRPC(Team team)
         {
+            photonView.RPC("RPC_SetTeam", RpcTarget.AllBuffered, (int)team);
+        }
 
+        [PunRPC]
+        public void RPC_SetTeam(int teamIndex)
+        {
+            team = (Team)teamIndex;
+        }
+
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+        {
+            if (stream.IsWriting)
+            {
+                stream.SendNext(balls);
+            }
+            else
+            {
+                balls = (int)stream.ReceiveNext();
+            }
+        }
+
+        public void OnDisconnectedFromServer()
+        {
+            if (photonView.IsMine)
+            {
+                FindFirstObjectByType<MatchManager>().RemovePlayer(gameObject);
+                PhotonNetwork.Destroy(gameObject);
+            }
         }
 
         public CharacterData GetCharacterData()

@@ -3,8 +3,9 @@ namespace NetGame.Assets.Scripts
     using System.Collections;
     using UnityEngine;
     using UnityEngine.InputSystem;
+    using Photon.Pun;
 
-    public class PlayerMovement : MonoBehaviour
+    public class PlayerMovement : MonoBehaviourPun, IPunObservable
     {
         [SerializeField] private bool iAmASandBag = false;
 
@@ -31,42 +32,66 @@ namespace NetGame.Assets.Scripts
         protected LayerMask groundCheckLayers;
         [SerializeField]
         protected LayerMask platformLayerMask;
+        private PhotonView _photonView;
         private bool canRoll;
         private bool isRolling;
+
+        private Vector2 _netPosition;
+
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
+            characterData = GetComponent<Player>().GetCharacterData();
+            playerVisuals = GetComponent<Player>().GetPlayerVisuals();
             canMove = true;
             canRoll = true;
             isRolling = false;
             rb = GetComponent<Rigidbody2D>();
             boxCollider = GetComponent<BoxCollider2D>();
             triggerCol = GetComponent<Player>().GetTriggerCol();
+            speed = characterData.moveSpeed;
+            _photonView = GetComponent<PhotonView>();
+
+            if (!_photonView.IsMine)
+            {
+                rb.bodyType = RigidbodyType2D.Kinematic;
+                return;
+            }
+
             horizontalAction = InputSystem.actions["Player/Horizontal"];
             verticalAction = InputSystem.actions["Player/Vertical"];
             jumpAction = InputSystem.actions["Player/Jump"];
             quickRollAction = InputSystem.actions["Player/Quick Roll"];
-            characterData = GetComponent<Player>().GetCharacterData();
-            playerVisuals = GetComponent<Player>().GetPlayerVisuals();
-            speed = characterData.moveSpeed;
+        }
+
+        public PhotonView GetPhotonView()
+        {
+            return _photonView;
         }
 
         // Update is called once per frame
         void Update()
         {
-            if (iAmASandBag) return;
+            if (!_photonView.IsMine || iAmASandBag)
+            {
+                SyncRemotePosition();
+                return;
+            }
 
             moveInput = horizontalAction.ReadValue<float>();
             HandleMovement();
             HandleJump();
 
             if (quickRollAction.triggered && (moveInput > 0.1f || moveInput < -0.1f) && grounded)
-            {
                 QuickRoll();
-            }
 
             Defense();
+        }
+
+        private void SyncRemotePosition()
+        {
+            rb.MovePosition(Vector2.Lerp(rb.position, _netPosition, 0.2f));
         }
 
         void FixedUpdate()
@@ -91,8 +116,15 @@ namespace NetGame.Assets.Scripts
         protected void HandleMovement()
         {
             if (!canMove || isRolling) return;
+            if (_photonView.IsMine)
+            {
+                rb.linearVelocity = new Vector2(moveInput * speed, rb.linearVelocityY);
+            }
 
-            rb.linearVelocity = new Vector2(moveInput * speed, rb.linearVelocityY);
+            if (!_photonView.IsMine)
+            {
+                transform.position = Vector3.Lerp(transform.position, _netPosition, 0.2f);
+            }
 
             if (moveInput > 0)
             {
@@ -127,6 +159,8 @@ namespace NetGame.Assets.Scripts
 
         protected void ComputeGrounded()
         {
+            if (groundCheck == null) return;
+
             Collider2D collider = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundCheckLayers);
 
             if (collider != null)
@@ -141,6 +175,7 @@ namespace NetGame.Assets.Scripts
 
         void OnDrawGizmos()
         {
+            if (groundCheck == null) return;
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
@@ -183,6 +218,33 @@ namespace NetGame.Assets.Scripts
             triggerCol.enabled = true;
             yield return new WaitForSeconds(0.2f);
             canRoll = true;
+        }
+
+        public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+        {
+            if (stream.IsWriting)
+            {
+                stream.SendNext(rb.position);
+                stream.SendNext(rb.linearVelocity);
+                stream.SendNext(playerVisuals.GetSpriteRenderer().flipX);
+
+                stream.SendNext(grounded);
+                stream.SendNext(defending);
+                stream.SendNext(isRolling);
+            }
+            else
+            {
+                _netPosition = (Vector2)stream.ReceiveNext();
+                Vector2 remoteVelocity = (Vector2)stream.ReceiveNext();
+                
+                float lag = Mathf.Abs((float)(PhotonNetwork.Time - info.SentServerTime));
+                _netPosition += remoteVelocity * lag;
+
+                playerVisuals.GetSpriteRenderer().flipX = (bool)stream.ReceiveNext();
+                grounded = (bool)stream.ReceiveNext();
+                defending = (bool)stream.ReceiveNext();
+                isRolling = (bool)stream.ReceiveNext();
+            }
         }
 
         public bool IsDefending()

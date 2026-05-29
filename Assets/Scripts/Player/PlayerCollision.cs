@@ -1,8 +1,9 @@
-using System.Collections;
-using UnityEngine;
-
 namespace NetGame.Assets.Scripts
 {
+    using Photon.Pun;
+    using UnityEngine;
+    using System.Collections;
+
     public class PlayerCollision : MonoBehaviour
     {
         [SerializeField] private bool hurt = false; // serialize para debug
@@ -18,12 +19,13 @@ namespace NetGame.Assets.Scripts
         {
             player = GetComponent<Player>();
             playerMovement = player.GetPlayerMovement();
-            ballPrefab = Resources.Load<GameObject>("Prefabs/Ball");
+            ballPrefab = Resources.Load<GameObject>("Ball");
             ballLayer = LayerMask.NameToLayer("Ball");
         }
 
         void Update()
         {
+            if (!player.photonView.IsMine) return;
             DetectAttack();
         }
 
@@ -41,7 +43,7 @@ namespace NetGame.Assets.Scripts
                 Debug.Log("Player hit!");
                 if (player.GetBalls() > 0)
                 {
-                    GameObject ball = Instantiate(ballPrefab, transform.position, Quaternion.identity);
+                    GameObject ball = PhotonNetwork.Instantiate("Ball", transform.position, Quaternion.identity);
                     ball.GetComponent<Ball>().SetTeam(player.GetTeam());
                     ball.GetComponent<Ball>().Side(hit.transform.position.x - transform.position.x);
                     ball.GetComponent<Ball>().Launch();
@@ -66,10 +68,13 @@ namespace NetGame.Assets.Scripts
         {
             if (collision.gameObject.layer == ballLayer)
             {
+                Ball ball = collision.gameObject.GetComponent<Ball>();
+                if (ball == null) return;
+
                 if (!hurt && !player.GetPlayerMovement().CheckIfIAmASandBag())
                 {
                     Debug.Log(collision.gameObject.GetComponent<Ball>().GetTeam() != player.GetTeam() ? "Got a ball!" : "Recovered your ball!");
-                    Destroy(collision.gameObject);
+                    PhotonNetwork.Destroy(collision.gameObject);
                     player.AddBall();
                 }
             }

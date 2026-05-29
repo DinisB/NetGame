@@ -19,4 +19,9 @@ public class PlayerVisuals : MonoBehaviour
     {
         spriteRenderer.flipX = !facingRight;
     }
+
+    public SpriteRenderer GetSpriteRenderer()
+    {
+        return spriteRenderer;
+    }
 }
