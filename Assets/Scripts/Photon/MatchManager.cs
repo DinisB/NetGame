@@ -3,7 +3,9 @@ namespace NetGame.Assets.Scripts
     using UnityEngine;
     using Photon.Pun;
     using Unity.Cinemachine;
+    using System;
     using System.Collections.Generic;
+    using System.Collections;
     using TMPro;
 
     public class MatchManager : MonoBehaviourPunCallbacks, IPunObservable
@@ -14,9 +16,12 @@ namespace NetGame.Assets.Scripts
         private IList<GameObject> players = new List<GameObject>();
         [SerializeField] private TextMeshProUGUI redScoreText;
         [SerializeField] private TextMeshProUGUI blueScoreText;
-        private static readonly int maxBalls = 200;
+        private static readonly int maxBalls = 80;
         private int redScore;
         private int blueScore;
+
+        [SerializeField] private TextMeshProUGUI timerText;
+        private float matchTime = 120f;
 
         void Start()
         {
@@ -25,9 +30,31 @@ namespace NetGame.Assets.Scripts
                 TrySpawnPlayer();
             }
 
-            redScore = 100;
-            blueScore = 100;
+            redScore = 40;
+            blueScore = 40;
             UpdateScore();
+            StartCoroutine(CountdownTimer());
+        }
+
+        private IEnumerator CountdownTimer()
+        {
+            while (PhotonNetwork.PlayerList.Length < 2)
+            {
+                yield return null;
+                timerText.text = "à espera do 2º player";
+            }
+            while (matchTime > 0)
+            {
+                timerText.text = TimeSpan.FromSeconds(matchTime).ToString(@"mm\:ss");
+                yield return new WaitForSeconds(1f);
+                matchTime -= 1f;
+            }
+            timerText.text = "0";
+
+            for (int i = players.Count - 1; i >= 0; i--)
+            {
+                players[i].SetActive(false);
+            }
         }
 
         private void TrySpawnPlayer()
@@ -63,12 +90,12 @@ namespace NetGame.Assets.Scripts
 
         public void AddScore(Team team)
         {
-            photonView.RPC("RPC_AddScore", RpcTarget.AllBuffered, (int)team);
+            photonView.RPC("RPC_AddScore", RpcTarget.All, (int)team);
         }
 
         public void RemoveScore(Team team)
         {
-            photonView.RPC("RPC_RemoveScore", RpcTarget.AllBuffered, (int)team);
+            photonView.RPC("RPC_RemoveScore", RpcTarget.All, (int)team);
         }
 
         [PunRPC]

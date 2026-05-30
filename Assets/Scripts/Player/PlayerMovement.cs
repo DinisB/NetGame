@@ -37,6 +37,10 @@ namespace NetGame.Assets.Scripts
         private bool isRolling;
 
         private Vector2 _netPosition;
+        private Vector2 _netVelocity;
+
+        [SerializeField]
+        private float smoothSpeed = 15f;
 
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -71,7 +75,7 @@ namespace NetGame.Assets.Scripts
         }
 
         // Update is called once per frame
-        void Update()
+        void FixedUpdate()
         {
             if (!_photonView.IsMine || iAmASandBag)
             {
@@ -79,7 +83,17 @@ namespace NetGame.Assets.Scripts
                 return;
             }
 
+            ComputeGrounded();
+        }
+
+        void Update()
+        {
+            if (!_photonView.IsMine || iAmASandBag)
+            {
+                return;
+            }
             moveInput = horizontalAction.ReadValue<float>();
+
             HandleMovement();
             HandleJump();
 
@@ -91,12 +105,13 @@ namespace NetGame.Assets.Scripts
 
         private void SyncRemotePosition()
         {
-            rb.MovePosition(Vector2.Lerp(rb.position, _netPosition, 0.2f));
-        }
-
-        void FixedUpdate()
-        {
-            ComputeGrounded();
+            rb.MovePosition(
+            Vector2.Lerp(
+                rb.position,
+                _netPosition,
+                smoothSpeed * Time.fixedDeltaTime
+            )
+        );
         }
 
         protected void Defense()
@@ -119,11 +134,6 @@ namespace NetGame.Assets.Scripts
             if (_photonView.IsMine)
             {
                 rb.linearVelocity = new Vector2(moveInput * speed, rb.linearVelocityY);
-            }
-
-            if (!_photonView.IsMine)
-            {
-                transform.position = Vector3.Lerp(transform.position, _netPosition, 0.2f);
             }
 
             if (moveInput > 0)
@@ -231,19 +241,23 @@ namespace NetGame.Assets.Scripts
                 stream.SendNext(grounded);
                 stream.SendNext(defending);
                 stream.SendNext(isRolling);
+
+                stream.SendNext(gameObject.activeSelf);
             }
             else
             {
                 _netPosition = (Vector2)stream.ReceiveNext();
-                Vector2 remoteVelocity = (Vector2)stream.ReceiveNext();
-                
-                float lag = Mathf.Abs((float)(PhotonNetwork.Time - info.SentServerTime));
-                _netPosition += remoteVelocity * lag;
+                _netVelocity = (Vector2)stream.ReceiveNext();
+
+                double lag = PhotonNetwork.Time - info.SentServerTime;
+                _netPosition += _netVelocity * (float)lag;
 
                 playerVisuals.GetSpriteRenderer().flipX = (bool)stream.ReceiveNext();
                 grounded = (bool)stream.ReceiveNext();
                 defending = (bool)stream.ReceiveNext();
                 isRolling = (bool)stream.ReceiveNext();
+
+                gameObject.SetActive((bool)stream.ReceiveNext());
             }
         }
 

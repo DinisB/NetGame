@@ -11,19 +11,33 @@ namespace NetGame.Assets.Scripts
         private Rigidbody2D rb;
         private float side;
         private Vector2 _netPosition;
+        private Vector2 _netVelocity;
+        private Sprite redBallSprite;
+        private Sprite blueBallSprite;
+
+        [SerializeField]
+        private float smoothSpeed = 15f;
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
+            redBallSprite = Resources.Load<Sprite>("Sprites/Balls/ballred");
+            blueBallSprite = Resources.Load<Sprite>("Sprites/Balls/ballblu");
             TeamColor();
             if (!photonView.IsMine)
                 rb.bodyType = RigidbodyType2D.Kinematic;
         }
 
-        void Update()
+        void FixedUpdate()
         {
             if (!photonView.IsMine)
-                rb.MovePosition(Vector2.Lerp(rb.position, _netPosition, 0.2f));
+                    rb.MovePosition(
+                    Vector2.Lerp(
+                        rb.position,
+                        _netPosition,
+                        smoothSpeed * Time.fixedDeltaTime
+                    )
+                );
         }
 
         // Update is called once per frame
@@ -40,18 +54,18 @@ namespace NetGame.Assets.Scripts
         {
             if (stream.IsWriting)
             {
+                stream.SendNext(team);
                 stream.SendNext(rb.position);
                 stream.SendNext(rb.linearVelocity);
-                stream.SendNext(team);
             }
             else
             {
-                _netPosition = (Vector2)stream.ReceiveNext();
-                Vector2 remoteVelocity = (Vector2)stream.ReceiveNext();
-                float lag = Mathf.Abs((float)(PhotonNetwork.Time - info.SentServerTime));
-                _netPosition += remoteVelocity * lag;
                 team = (Team)stream.ReceiveNext();
                 TeamColor();
+                _netPosition = (Vector2)stream.ReceiveNext();
+                _netVelocity = (Vector2)stream.ReceiveNext();
+                double lag = PhotonNetwork.Time - info.SentServerTime;
+                _netPosition += _netVelocity * (float)lag;
             }
         }
 
@@ -59,11 +73,11 @@ namespace NetGame.Assets.Scripts
         {
             if (team == Team.Red)
             {
-                spriteRenderer.sprite = Resources.Load<Sprite>("Sprites/Balls/ballred");
+                spriteRenderer.sprite = redBallSprite;
             }
             else if (team == Team.Blue)
             {
-                spriteRenderer.sprite = Resources.Load<Sprite>("Sprites/Balls/ballblu");
+                spriteRenderer.sprite = blueBallSprite;
             }
         }
 
