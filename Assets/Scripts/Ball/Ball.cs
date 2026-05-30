@@ -21,30 +21,36 @@ namespace NetGame.Assets.Scripts
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
-            redBallSprite = Resources.Load<Sprite>("Sprites/Balls/ballred");
-            blueBallSprite = Resources.Load<Sprite>("Sprites/Balls/ballblu");
+            object[] data = photonView.InstantiationData;
+            
+            SetTeam((Team)(int)data[0]);
+            Side((float)data[1]);
+            Launch();
             TeamColor();
+
+
             if (!photonView.IsMine)
                 rb.bodyType = RigidbodyType2D.Kinematic;
+        }
+
+        void Awake()
+        {
+            spriteRenderer = GetComponent<SpriteRenderer>();
+            rb = GetComponent<Rigidbody2D>();
+            redBallSprite = Resources.Load<Sprite>("Sprites/Balls/ballred");
+            blueBallSprite = Resources.Load<Sprite>("Sprites/Balls/ballblu");
         }
 
         void FixedUpdate()
         {
             if (!photonView.IsMine)
-                    rb.MovePosition(
-                    Vector2.Lerp(
-                        rb.position,
-                        _netPosition,
-                        smoothSpeed * Time.fixedDeltaTime
-                    )
-                );
-        }
-
-        // Update is called once per frame
-        void Awake()
-        {
-            spriteRenderer = GetComponent<SpriteRenderer>();
-            rb = GetComponent<Rigidbody2D>();
+                rb.MovePosition(
+                Vector2.Lerp(
+                    rb.position,
+                    _netPosition,
+                    smoothSpeed * Time.fixedDeltaTime
+                )
+            );
         }
 
         public void Launch()

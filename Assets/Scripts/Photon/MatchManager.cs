@@ -128,6 +128,18 @@ namespace NetGame.Assets.Scripts
             UpdateScore();
         }
 
+        public void SpawnBall(Team team, Vector2 position, float side)
+        {
+            photonView.RPC("RPC_SpawnBall", RpcTarget.MasterClient, (int)team, position, side);
+        }
+
+        [PunRPC]
+        public void RPC_SpawnBall(Team team, Vector2 position, float side)
+        {
+            object[] initData = new object[] { team, side };
+            PhotonNetwork.Instantiate("Ball", position, Quaternion.identity, 0, initData);
+        }
+
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
             if (stream.IsWriting)

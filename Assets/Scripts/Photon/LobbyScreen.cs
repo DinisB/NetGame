@@ -16,6 +16,8 @@ namespace NetGame.Assets.Scripts
         void Start()
         {
             PhotonNetwork.ConnectUsingSettings();
+            PhotonNetwork.SendRate = 60;
+            PhotonNetwork.SerializationRate = 60;
         }
 
         public override void OnConnectedToMaster()
@@ -112,6 +114,14 @@ namespace NetGame.Assets.Scripts
         public override void OnJoinedRoom()
         {
             PhotonNetwork.LoadLevel("Game");
+        }
+
+        void Update()
+        {
+            if (PhotonNetwork.IsConnectedAndReady)
+            {
+                PhotonNetwork.SendAllOutgoingCommands();
+            }
         }
     }
 }

@@ -44,10 +44,7 @@ namespace NetGame.Assets.Scripts
                 Debug.Log("Player hit!");
                 if (player.GetMatchManager().GetScore(player.GetTeam()) > 0)
                 {
-                    GameObject ball = PhotonNetwork.Instantiate("Ball", transform.position, Quaternion.identity);
-                    ball.GetComponent<Ball>().SetTeam(player.GetTeam());
-                    ball.GetComponent<Ball>().Side(hit.transform.position.x - transform.position.x);
-                    ball.GetComponent<Ball>().Launch();
+                    player.GetMatchManager().RPC_SpawnBall(player.GetTeam(), transform.position, hit.transform.position.x - transform.position.x);
                     player.RemoveBall();
                 }
                 if (resetHurtCoroutine != null)

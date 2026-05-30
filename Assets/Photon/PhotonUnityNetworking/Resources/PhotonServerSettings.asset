@@ -43,6 +43,7 @@ MonoBehaviour:
   - RPC_SetBalls
   - RPC_AddScore
   - RPC_RemoveScore
+  - RPC_SpawnBall
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
