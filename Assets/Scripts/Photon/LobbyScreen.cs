@@ -3,6 +3,7 @@ namespace NetGame.Assets.Scripts
     using UnityEngine;
     using Photon.Pun;
     using Photon.Realtime;
+    using System.Collections.Generic;
     using TMPro;
 
     public class LobbyScreen : MonoBehaviourPunCallbacks
@@ -12,6 +13,7 @@ namespace NetGame.Assets.Scripts
         private bool _pendingHost = false;
         private bool _pendingJoin = false;
         private string _pendingRoomName = "";
+        private List<RoomInfo> _cachedRooms = new List<RoomInfo>();
 
         void Start()
         {
@@ -51,10 +53,32 @@ namespace NetGame.Assets.Scripts
             _pendingRoomName = roomName;
 
             if (PhotonNetwork.InLobby)
-                CreateRoom(roomName);
+                CreateRoom(roomName, false);
             else
             {
                 _pendingHost = true;
+                if (!PhotonNetwork.IsConnected)
+                    PhotonNetwork.ConnectUsingSettings();
+            }
+        }
+
+        public void Matchmaking()
+        {
+            if (PhotonNetwork.InLobby)
+            {
+                foreach (RoomInfo room in _cachedRooms)
+                {
+                    if (room.PlayerCount == 1 && room.IsVisible == true)
+                    {
+                        PhotonNetwork.JoinRoom(room.Name);
+                        return;
+                    }
+                }
+                PhotonNetwork.CreateRoom(Random.Range(0, 100000).ToString("D5"), new RoomOptions { MaxPlayers = 2, IsVisible = true });
+            }
+            else
+            {
+                _pendingJoin = true;
                 if (!PhotonNetwork.IsConnected)
                     PhotonNetwork.ConnectUsingSettings();
             }
@@ -78,6 +102,11 @@ namespace NetGame.Assets.Scripts
             }
 
             roomNameInput.text = "";
+        }
+
+        public override void OnRoomListUpdate(List<RoomInfo> roomList)
+        {
+            _cachedRooms = roomList;
         }
 
         public void JoinGame()
@@ -105,9 +134,9 @@ namespace NetGame.Assets.Scripts
             }
         }
 
-        private void CreateRoom(string roomName)
+        private void CreateRoom(string roomName, bool isVisible = true)
         {
-            RoomOptions options = new RoomOptions { MaxPlayers = 2 };
+            RoomOptions options = new RoomOptions { MaxPlayers = 2, IsVisible = isVisible };
             PhotonNetwork.CreateRoom(roomName, options);
         }
 

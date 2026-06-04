@@ -14,11 +14,13 @@ namespace NetGame.Assets.Scripts
         private PlayerMovement playerMovement;
 
         private Coroutine resetHurtCoroutine;
+        private PlayerVisuals playerVisuals;
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
             player = GetComponent<Player>();
             playerMovement = player.GetPlayerMovement();
+            playerVisuals = player.GetPlayerVisuals();
             ballPrefab = Resources.Load<GameObject>("Ball");
             ballLayer = LayerMask.NameToLayer("Ball");
         }
@@ -41,6 +43,7 @@ namespace NetGame.Assets.Scripts
                     return;
                 }
                 hurt = true;
+                playerVisuals.GetAnimator().SetBool("Hurt", true);
                 Debug.Log("Player hit!");
                 if (player.GetMatchManager().GetScore(player.GetTeam()) > 0)
                 {
@@ -60,6 +63,7 @@ namespace NetGame.Assets.Scripts
             yield return new WaitForSeconds(.5f);
             hurt = false;
             playerMovement.SetCanMove(true);
+            playerVisuals.GetAnimator().SetBool("Hurt", false);
         }
 
         void OnTriggerEnter2D(Collider2D collision)

@@ -16,6 +16,8 @@ namespace NetGame.Assets.Scripts
         private IList<GameObject> players = new List<GameObject>();
         [SerializeField] private TextMeshProUGUI redScoreText;
         [SerializeField] private TextMeshProUGUI blueScoreText;
+        [SerializeField] private GameObject winScreen;
+        [SerializeField] private TextMeshProUGUI winText;
         private static readonly int maxBalls = 80;
         private int redScore;
         private int blueScore;
@@ -55,6 +57,16 @@ namespace NetGame.Assets.Scripts
             {
                 players[i].SetActive(false);
             }
+
+            winScreen.SetActive(true);
+            string winner = redScore > blueScore ? $"Red + {redScore}" : blueScore > redScore ? $"Blue + {blueScore}" : "Empate";
+            winText.text = "Vencedor: \n" + winner;
+        }
+
+        public void BackToMenu()
+        {
+            PhotonNetwork.LeaveRoom();
+            PhotonNetwork.LoadLevel("Login");
         }
 
         private void TrySpawnPlayer()
@@ -137,6 +149,8 @@ namespace NetGame.Assets.Scripts
         public void RPC_SpawnBall(Team team, Vector2 position, float side)
         {
             object[] initData = new object[] { team, side };
+            float sideX = side > 0 ? -1f : 1f;
+            position.x += sideX;
             PhotonNetwork.Instantiate("Ball", position, Quaternion.identity, 0, initData);
         }
 

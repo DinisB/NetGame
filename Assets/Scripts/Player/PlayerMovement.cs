@@ -41,6 +41,7 @@ namespace NetGame.Assets.Scripts
 
         [SerializeField]
         private float smoothSpeed = 15f;
+        private bool canGround;
 
 
         // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -77,13 +78,13 @@ namespace NetGame.Assets.Scripts
         // Update is called once per frame
         void FixedUpdate()
         {
+            ComputeGrounded();
+
             if (!_photonView.IsMine || iAmASandBag)
             {
                 SyncRemotePosition();
                 return;
             }
-
-            ComputeGrounded();
         }
 
         void Update()
@@ -130,7 +131,17 @@ namespace NetGame.Assets.Scripts
 
         protected void HandleMovement()
         {
+            if (rb.linearVelocity.x > 0.1f|| rb.linearVelocity.x < -0.1f)
+            {
+                playerVisuals.GetAnimator().SetBool("Walk", true);
+            }
+            else
+            {
+                playerVisuals.GetAnimator().SetBool("Walk", false);
+            }
+
             if (!canMove || isRolling) return;
+
             if (_photonView.IsMine)
             {
                 rb.linearVelocity = new Vector2(moveInput * speed, rb.linearVelocityY);
@@ -151,8 +162,12 @@ namespace NetGame.Assets.Scripts
             if (!canMove || !grounded) return;
             if (rb.linearVelocityY > 0.1f) return;
 
+
             if (jumpAction.triggered)
             {
+                playerVisuals.GetAnimator().SetBool("Jump", true);
+                StartCoroutine(ResetJumpAnimation());
+
                 if (verticalAction.ReadValue<float>() < -0.5f)
                 {
                     StartCoroutine(FallFromFloor());
@@ -160,6 +175,13 @@ namespace NetGame.Assets.Scripts
                 }
                 rb.AddForce(Vector2.up * characterData.jumpForce, ForceMode2D.Impulse);
             }
+        }
+
+        private IEnumerator ResetJumpAnimation()
+        {
+            canGround = false;
+            yield return new WaitForSeconds(0.25f);
+            canGround = true;
         }
 
         public void HurtJump(float direction)
@@ -176,6 +198,10 @@ namespace NetGame.Assets.Scripts
             if (collider != null)
             {
                 grounded = true;
+                if (canGround)
+                {
+                    playerVisuals.GetAnimator().SetBool("Jump", false);
+                }
             }
             else
             {
@@ -207,7 +233,9 @@ namespace NetGame.Assets.Scripts
             if (defending) yield break;
 
             defending = true;
+            playerVisuals.GetAnimator().SetTrigger("Attack");
             yield return new WaitForSeconds(0.5f);
+            playerVisuals.GetAnimator().ResetTrigger("Attack");
             defending = false;
         }
 
