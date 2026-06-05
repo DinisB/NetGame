@@ -70,7 +70,7 @@ namespace NetGame.Assets.Scripts
         {
             if (!player.photonView.IsMine) return;
 
-            if (collision.gameObject.layer == ballLayer && !playerMovement.IsAttacking())
+            if (collision.gameObject.layer == ballLayer)
             {
                 Ball ball = collision.gameObject.GetComponent<Ball>();
                 if (ball == null) return;
@@ -80,7 +80,7 @@ namespace NetGame.Assets.Scripts
                     Debug.Log(collision.gameObject.GetComponent<Ball>().GetTeam() != player.GetTeam()
                         ? "Apanhaste uma bola" : "Recuperaste uma bola");
 
-                    PhotonNetwork.Destroy(collision.gameObject);
+                    player.GetMatchManager().Destroy(collision.gameObject.GetComponent<PhotonView>().ViewID);
                     player.AddBall();
                 }
             }

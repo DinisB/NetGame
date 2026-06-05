@@ -23,7 +23,6 @@ namespace NetGame.Assets.Scripts
         private float moveInput;
         private bool grounded;
         private bool defending;
-        private bool isAttacking = false;
 
         [SerializeField]
         protected Transform groundCheck;
@@ -156,16 +155,6 @@ namespace NetGame.Assets.Scripts
             {
                 playerVisuals.FlipSprite(false);
             }
-        }
-
-        public void SetAttack(bool attacking)
-        {
-            isAttacking = attacking;
-        }
-
-        public bool IsAttacking()
-        {
-            return isAttacking;
         }
 
         protected void HandleJump()

@@ -118,6 +118,18 @@ namespace NetGame.Assets.Scripts
             photonView.RPC("RPC_RemoveScore", RpcTarget.All, (int)team);
         }
 
+        public void Destroy(int viewID)
+        {
+            photonView.RPC("RPC_Destroy", RpcTarget.All, viewID);
+        }
+
+        [PunRPC]
+        public void RPC_Destroy(int viewID)
+        {
+            GameObject obj = PhotonView.Find(viewID).gameObject;
+             Destroy(obj);
+        }
+
         [PunRPC]
         public void RPC_AddScore(int teamIndex)
         {
