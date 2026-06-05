@@ -17,6 +17,7 @@ namespace NetGame.Assets.Scripts
 
         private bool attacking;
         private PlayerVisuals playerVisuals;
+        private PlayerMovement playerMovement;
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
@@ -24,6 +25,7 @@ namespace NetGame.Assets.Scripts
             attackCol.enabled = false;
             player = GetComponent<Player>();
             playerVisuals = player.GetPlayerVisuals();
+            playerMovement = player.GetPlayerMovement();
 
             if (!photonView.IsMine) return;
 
@@ -49,6 +51,7 @@ namespace NetGame.Assets.Scripts
             }
 
             playerVisuals.GetAnimator().SetBool("Attack", true);
+            playerMovement.SetAttack(true);
 
             if (verticalAction.ReadValue<float>() > 0.1f || verticalAction.ReadValue<float>() < -0.1f)
             {
@@ -91,6 +94,7 @@ namespace NetGame.Assets.Scripts
             attackCol.enabled = false;
             attacking = false;
             playerVisuals.GetAnimator().SetBool("Attack", false);
+            playerMovement.SetAttack(false);
         }
 
         private IEnumerator VerticalAttack(float verticalInput)
@@ -108,6 +112,7 @@ namespace NetGame.Assets.Scripts
             attackCol.enabled = false;
             attacking = false;
             playerVisuals.GetAnimator().SetBool("Attack", false);
+            playerMovement.SetAttack(false);
         }
 
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

@@ -49,14 +49,22 @@ namespace NetGame.Assets.Scripts
             {
                 timerText.text = TimeSpan.FromSeconds(matchTime).ToString(@"mm\:ss");
                 yield return new WaitForSeconds(1f);
-                matchTime -= 1f;
+
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    matchTime -= 1f;
+                }
             }
             timerText.text = "0";
 
+            photonView.RPC("RPC_EndMatch", RpcTarget.All);
+        }
+
+        [PunRPC]
+        private void RPC_EndMatch()
+        {
             for (int i = players.Count - 1; i >= 0; i--)
-            {
                 players[i].SetActive(false);
-            }
 
             winScreen.SetActive(true);
             string winner = redScore > blueScore ? $"Red + {redScore}" : blueScore > redScore ? $"Blue + {blueScore}" : "Empate";
@@ -160,11 +168,13 @@ namespace NetGame.Assets.Scripts
             {
                 stream.SendNext(redScore);
                 stream.SendNext(blueScore);
+                stream.SendNext(matchTime);
             }
             else
             {
                 redScore = (int)stream.ReceiveNext();
                 blueScore = (int)stream.ReceiveNext();
+                matchTime = (float)stream.ReceiveNext();
                 UpdateScore();
             }
         }
