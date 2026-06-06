@@ -12,7 +12,7 @@ namespace NetGame.Assets.Scripts
     {
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private GameObject cameraPrefab;
-        [SerializeField] private Transform spawnPoint;
+        [SerializeField] private Transform[] spawnPoint;
         private IList<GameObject> players = new List<GameObject>();
         [SerializeField] private TextMeshProUGUI redScoreText;
         [SerializeField] private TextMeshProUGUI blueScoreText;
@@ -81,7 +81,7 @@ namespace NetGame.Assets.Scripts
         {
             GameObject player = PhotonNetwork.Instantiate(
             playerPrefab.name,
-            spawnPoint.position,
+            spawnPoint[PhotonNetwork.CurrentRoom.PlayerCount - 1].position,
             Quaternion.identity
             );
 
