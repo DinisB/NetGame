@@ -71,6 +71,12 @@ namespace NetGame.Assets.Scripts
             winText.text = "Vencedor: \n" + winner;
         }
 
+        public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
+        {
+            photonView.RPC("RPC_EndMatch", RpcTarget.All);
+            winText.text = "Jogador desconectado.";
+        }
+
         public void BackToMenu()
         {
             PhotonNetwork.LeaveRoom();
@@ -127,7 +133,7 @@ namespace NetGame.Assets.Scripts
         public void RPC_Destroy(int viewID)
         {
             GameObject obj = PhotonView.Find(viewID).gameObject;
-             Destroy(obj);
+            Destroy(obj);
         }
 
         [PunRPC]

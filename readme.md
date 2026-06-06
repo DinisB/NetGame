@@ -20,15 +20,25 @@ Ao fim de 2 minutos, o jogador com o maior número de bolas vence.
 
 Ao contrário do jogo original, nesta versão cada jogador tem 40 bolas e as partidas têm maior tempo de duração.
 
--- Controlos --
+## Instruções
+
+#### -- Controlos --
 - Z - Saltar
 - X + Direção (ou sem direção)- Atacar
 - C - Defender
 - Baixo + Z - Saltar de uma plataforma
 
+#### Como iniciar servidor:
+Para partidas privadas, selecionar "Host".
+
+Para partidas aleatórias, seleciona "Fight Random", é capaz de selecionar uma sala em vez de a criar.
+
+
 ## Descrição técnica
 
 Para desenvolvimento, decidi utilizar a biblioteca **Photon PUN 2**, e criar o projeto com tecnologia **Peer-to-Peer** com **Netcode baseado em delay**, [que é o tipo de redes que este tipo de jogos utilizam, sem contar o Rollback.](https://glossary.infil.net/?t=Delay-Based%20Netcode)
+
+Inicialmente pensei em utilizar FishNetworking com servidores Epic, pelo que se vê nos ficheiros, mas acabei por mudar.
 
 No menu, existem duas opções para partidas, um modo que permite jogar com um amigo via código, e um modo de Matchmaking que obtém a lista de partidas e tenta entrar numa, ou criar se não existirem partidas abertas.
 
@@ -38,7 +48,7 @@ O botão de Matchmaking não funciona com partidas feitas no botão "Host" por d
 
 Ao começar ou entrar numa partida, o jogador é levado para a sala, onde começa o temporizador global caso haja outro jogador.
 
-[Usei este vídeo no começo para o menu de matchmaking](https://youtu.be/C6dXcMo2x40?si=s3NYeI0noPWLfEH7) + [a documentação sobre Matchmaking do Photon.](https://doc.photonengine.com/realtime/current/lobby-and-matchmaking/matchmaking-and-lobby)
+[Usei este vídeo no começo para o menu de matchmaking](https://www.youtube.com/watch?v=C6dXcMo2x40) + [a documentação sobre Matchmaking do Photon.](https://doc.photonengine.com/realtime/current/lobby-and-matchmaking/matchmaking-and-lobby)
 
 Também defino o "Rate" de envio e de serialização para 60, que é o normal em jogos de luta, pois antes dessa mudança, o jogo tinha pior preformance.
 
@@ -58,6 +68,8 @@ De seguida, em vez de teletransportar o **Rigidbody2D**, tenta movê-lo para a p
 
 ![Vencedor](vencedor.png)
 Quando o temporizador do servidor acaba, o mesmo envia aos jogadores (A ele próprio e ao outro cliente) uma mensagem a sinalizar o fim de jogo e a indicar que equipa venceu.
+
+Se um jogador se desconectar da partida, a partida acaba prematuramente e exibe o ecrã de voltar.
 
 ## Análise de banda larga
 
@@ -80,7 +92,13 @@ flowchart TB
     PLAYER2 -- RPC / Serialize --> PHOTON
     P1 -- SpawnBall RPC --> MM
     MM -- "PhotonNetwork.Instantiate" --> BALL["Bola \nBall.cs, IPunObservable, Colisões"]
-    P1G["P1G"] -- OnTriggerEnter2D --> BALL
+    P1["P1"] -- OnTriggerEnter2D --> BALL
     LOBBY["LobbyScreen.cs\nHostGame, JoinGame, Matchmaking"] --> PHOTON
     PLAYER1 --> PHOTON
 ```
+
+## Bibliografia
+
+- Vídeo sobre salas Photon - https://www.youtube.com/watch?v=C6dXcMo2x40
+- Documentação do Photon - https://doc.photonengine.com/pun/current/
+- Fighting game glossary - https://glossary.infil.net/index.html
