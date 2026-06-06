@@ -20,6 +20,12 @@ Ao fim de 2 minutos, o jogador com o maior número de bolas vence.
 
 Ao contrário do jogo original, nesta versão cada jogador tem 40 bolas e as partidas têm maior tempo de duração.
 
+-- Controlos --
+- Z - Saltar
+- X + Direção (ou sem direção)- Atacar
+- C - Defender
+- Baixo + Z - Saltar de uma plataforma
+
 ## Descrição técnica
 
 Para desenvolvimento, decidi utilizar a biblioteca **Photon PUN 2**, e criar o projeto com tecnologia **Peer-to-Peer** com **Netcode baseado em delay**, [que é o tipo de redes que este tipo de jogos utilizam, sem contar o Rollback.](https://glossary.infil.net/?t=Delay-Based%20Netcode)
@@ -42,7 +48,9 @@ Durante a partida, o primeiro jogador age como **servidor**, sendo o mesmo que g
 
 O segundo jogador apenas pede ao servidor para incrementar a sua pontuação, instanciar e remover objetos, enviando informações sobre o seu estado, o seu **Rigidbody2D**, e da sua equipa, recebendo o resto das informações.
 
-Cada jogador gere as suas próprias físicas e colisões, enviando-as um ao outro, com o servidor a gerir as físicas das bolas.
+Utilizei esta parte da [documentação Photon para como fazer pedidos de métodos para o servidor.](https://doc.photonengine.com/pun/current/gameplay/rpcsandraiseevent)
+
+Cada jogador gere as suas próprias físicas, colisões e variáveis das animações, enviando-as um ao outro, com o servidor a gerir as físicas das bolas.
 
 Quando um jogador recebe posições do outro ou das bolas, tenta calcular o tempo da mensagem com o do servidor, e assim adivinha a posição atual, sendo esta técnica chamada de [**Lag Compensation**](https://doc.photonengine.com/pun/current/gameplay/lagcompensation).
 
@@ -50,3 +58,29 @@ De seguida, em vez de teletransportar o **Rigidbody2D**, tenta movê-lo para a p
 
 ![Vencedor](vencedor.png)
 Quando o temporizador do servidor acaba, o mesmo envia aos jogadores (A ele próprio e ao outro cliente) uma mensagem a sinalizar o fim de jogo e a indicar que equipa venceu.
+
+## Análise de banda larga
+
+<img src="web.png" alt="Banda Larga" width="100"/>
+
+Durante uma partida, onde ambos os jogadores batalham por todas as bolas e só as tentam apanhar no final, o jogo consome tráfego de **Upload** de 569426 bytes (556 KB), e **Download** de 1075632 bytes (1.03 MB).
+
+## Diagrama de arquitetura de redes
+
+```mermaid
+flowchart TB
+ subgraph PLAYER1["Player 1 — Servidor + Cliente"]
+        P1["Player (Componentes)<br>Movement, Attack, Colision, Visuals"]
+        MM["MatchManager.cs\nScore , Timer, RPC_EndMatch, SpawnBall"]
+  end
+ subgraph PLAYER2["Player 2 — Cliente"]
+        P2GO["Player (Componentes) \n recebe RPC e OnSerialize"]
+  end
+    PHOTON["Photon Cloud\nLobby + Rooms + RPC relay"] -- RPC / Serialize --> PLAYER2
+    PLAYER2 -- RPC / Serialize --> PHOTON
+    P1 -- SpawnBall RPC --> MM
+    MM -- "PhotonNetwork.Instantiate" --> BALL["Bola \nBall.cs, IPunObservable, Colisões"]
+    P1G["P1G"] -- OnTriggerEnter2D --> BALL
+    LOBBY["LobbyScreen.cs\nHostGame, JoinGame, Matchmaking"] --> PHOTON
+    PLAYER1 --> PHOTON
+```
