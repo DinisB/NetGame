@@ -109,7 +109,7 @@ flowchart TB
         B1["Lobby + Rooms + Matchmaking"]
         B2["RPC - AddScore, RemoveScore, SpawnBall, EndMatch"]
         B3["OnSerialize -
-        Jogador, Bolas, MatchManager\n60Hz"]
+        Jogador, Bolas, MatchManager"]
     end
 
     subgraph PC2["PC - Player 2 (Cliente)"]
