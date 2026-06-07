@@ -96,29 +96,40 @@ Durante uma partida, onde ambos os jogadores batalham por todas as bolas e só a
 
 ```mermaid
 flowchart TB
- subgraph PLAYER1["Player 1 - Servidor + Cliente"]
-        P1["Player (Componentes)
-        Movement, Attack, Colision, Visuals"]
-        MM["MatchManager.cs 
-        Score , Timer, RPC_EndMatch, SpawnBall"]
-  end
- subgraph PLAYER2["Player 2 - Cliente"]
-        P2["Player (Componentes) 
-      recebe RPC e OnSerialize"]
-  end
-    PHOTON["Photon Cloud
-    Lobby + Rooms + RPC"] -- RPC / Serialize --> PLAYER2
-    PLAYER2 -- RPC / Serialize --> PHOTON
-    P1 -- SpawnBall RPC --> MM
-    PLAYER2 -- "SpawnBall RPC" --> PHOTON
-    PHOTON -- "SpawnBall RPC" --> MM
-    MM -- "PhotonNetwork.Instantiate" --> BALL["Bola 
-    Ball.cs, IPunObservable, Colisões"]
-    P1["Player (Componentes) 
-      recebe RPC e OnSerialize"] -- OnTriggerEnter2D --> BALL
-    LOBBY["LobbyScreen.cs
-    HostGame, JoinGame, Matchmaking"] --> PHOTON
-    PLAYER1 --> PHOTON
+    subgraph PC1["PC - Player 1 (MasterClient)"]
+        A1["Estado do Jogador
+        posição, velocidade, animações"]
+        A2["MatchManager
+        Timer, Score, SpawnBall, RPC_EndMatch"]
+        A3["Bolas
+        Física, posição, equipa"]
+    end
+
+    subgraph CLOUD["Photon Cloud (Relay UDP)"]
+        B1["Lobby + Rooms + Matchmaking"]
+        B2["RPC - AddScore, RemoveScore, SpawnBall, EndMatch"]
+        B3["OnSerialize -
+        Jogador, Bolas, MatchManager\n60Hz"]
+    end
+
+    subgraph PC2["PC - Player 2 (Cliente)"]
+        C1["Estado do Jogador
+        posição, velocidade, animações"]
+        C2["Pedidos ao Servidor
+        SpawnBall, AddScore, RemoveScore"]
+    end
+
+    PC1 -- "OnSerialize - Jogador + Bolas + Timer + Score" --> CLOUD
+    CLOUD -- "OnSerialize - Jogador + Bolas + Timer + Score" --> PC2
+
+    PC2 -- "OnSerialize - Jogador" --> CLOUD
+    CLOUD -- "OnSerialize - Jogador" --> PC1
+
+    PC2 -- "RPC - SpawnBall, AddScore, RemoveScore" --> CLOUD
+    CLOUD -- "RPC - SpawnBall, AddScore, RemoveScore" --> PC1
+
+    PC1 -- "RPC Broadcast - EndMatch" --> CLOUD
+    CLOUD -- "RPC Broadcast - EndMatch" --> PC2
 ```
 
 ## Bibliografia
