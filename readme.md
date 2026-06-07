@@ -54,9 +54,11 @@ Também defino o "Rate" de envio e de serialização para 60, que é o normal em
 
 ![Jogo](jogo1.png)
 
-Durante a partida, o primeiro jogador age como **servidor**, sendo o mesmo que gere o temporizador, as pontuações e GameObjects.
+Durante a partida, o primeiro jogador age como **servidor**, sendo o mesmo que gere o temporizador ```(if (PhotonNetwork.IsMasterClient) matchTime -= 1f)```, as pontuações e GameObjects ```(PhotonNetwork.Instantiate)```.
 
-O segundo jogador apenas pede ao servidor para incrementar a sua pontuação, instanciar e remover objetos, enviando informações sobre o seu estado, o seu **Rigidbody2D**, e da sua equipa, recebendo o resto das informações.
+O segundo jogador apenas pede ao servidor para incrementar a sua pontuação, instanciar e remover objetos, enviando informações sobre o seu estado, o seu **Rigidbody2D**, e da sua equipa, via ```(OnPhotonSerializeView)```, recebendo o resto das informações.
+
+Quando ataca sucessivamente o jogador, envia a equipa e o lado de onde atacou via ```(InstantiationData)```.
 
 Utilizei esta parte da [documentação Photon para como fazer pedidos de métodos para o servidor.](https://doc.photonengine.com/pun/current/gameplay/rpcsandraiseevent)
 
@@ -64,12 +66,15 @@ Cada jogador gere as suas próprias físicas, colisões e variáveis das animaç
 
 Quando um jogador recebe posições do outro ou das bolas, tenta calcular o tempo da mensagem com o do servidor, e assim adivinha a posição atual, sendo esta técnica chamada de [**Lag Compensation**](https://doc.photonengine.com/pun/current/gameplay/lagcompensation).
 
-De seguida, em vez de teletransportar o **Rigidbody2D**, tenta movê-lo para a posição, com uma velocidade própria.
+De seguida, em vez de teletransportar o **Rigidbody2D**, tenta movê-lo para a posição, com uma velocidade própria, reduzindo problemas de *Jittering*.
+
+Como referido anteriormente, cada jogador verifica as suas colisões, e verifica se está a defender localmente, para não causar *Input Delay*, e se sofrer dano, pede ao servidor para remover a sua bola.
 
 ![Vencedor](vencedor.png)
 Quando o temporizador do servidor acaba, o mesmo envia aos jogadores (A ele próprio e ao outro cliente) uma mensagem a sinalizar o fim de jogo e a indicar que equipa venceu.
 
 Se um jogador se desconectar da partida, a partida acaba prematuramente e exibe o ecrã de voltar.
+
 
 ## Análise de banda larga
 

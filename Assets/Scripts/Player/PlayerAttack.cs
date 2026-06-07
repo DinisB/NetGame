@@ -43,7 +43,7 @@ namespace NetGame.Assets.Scripts
 
         public void Attack()
         {
-            if (attacking && player.GetPlayerMovement().IsDefending())
+            if (attacking || player.GetPlayerMovement().IsDefending())
             {
                 return;
             }
