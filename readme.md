@@ -94,19 +94,27 @@ Durante uma partida, onde ambos os jogadores batalham por todas as bolas e só a
 
 ```mermaid
 flowchart TB
- subgraph PLAYER1["Player 1 — Servidor + Cliente"]
-        P1["Player (Componentes)<br>Movement, Attack, Colision, Visuals"]
-        MM["MatchManager.cs\nScore , Timer, RPC_EndMatch, SpawnBall"]
+ subgraph PLAYER1["Player 1 - Servidor + Cliente"]
+        P1["Player (Componentes)
+        Movement, Attack, Colision, Visuals"]
+        MM["MatchManager.cs 
+        Score , Timer, RPC_EndMatch, SpawnBall"]
   end
- subgraph PLAYER2["Player 2 — Cliente"]
-        P2GO["Player (Componentes) \n recebe RPC e OnSerialize"]
+ subgraph PLAYER2["Player 2 - Cliente"]
+        P2["Player (Componentes) 
+      recebe RPC e OnSerialize"]
   end
-    PHOTON["Photon Cloud\nLobby + Rooms + RPC relay"] -- RPC / Serialize --> PLAYER2
+    PHOTON["Photon Cloud
+    Lobby + Rooms + RPC"] -- RPC / Serialize --> PLAYER2
     PLAYER2 -- RPC / Serialize --> PHOTON
     P1 -- SpawnBall RPC --> MM
-    MM -- "PhotonNetwork.Instantiate" --> BALL["Bola \nBall.cs, IPunObservable, Colisões"]
+    PLAYER2 -- "SpawnBall RPC" --> PHOTON
+    PHOTON -- "SpawnBall RPC" --> MM
+    MM -- "PhotonNetwork.Instantiate" --> BALL["Bola 
+    Ball.cs, IPunObservable, Colisões"]
     P1["P1"] -- OnTriggerEnter2D --> BALL
-    LOBBY["LobbyScreen.cs\nHostGame, JoinGame, Matchmaking"] --> PHOTON
+    LOBBY["LobbyScreen.cs
+    HostGame, JoinGame, Matchmaking"] --> PHOTON
     PLAYER1 --> PHOTON
 ```
 
