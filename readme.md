@@ -59,7 +59,7 @@ Durante a partida, o primeiro jogador age como **servidor**, sendo o mesmo que g
 
 O segundo jogador apenas pede ao servidor para incrementar a sua pontuação, instanciar e remover objetos, via **Mensagens RPC**, enviando informações sobre o seu estado, o seu **Rigidbody2D**, e da sua equipa, via ```(OnPhotonSerializeView)```, recebendo o resto das informações.
 
-Quando ataca sucessivamente o jogador, envia a equipa e o lado de onde atacou via ```(InstantiationData)```.
+Quando ataca sucessivamente o jogador, envia a equipa e o lado de onde atacou via ```(initData)```.
 
 Utilizei esta parte da [documentação Photon para como fazer pedidos de métodos para o servidor.](https://doc.photonengine.com/pun/current/gameplay/rpcsandraiseevent)
 
@@ -112,7 +112,8 @@ flowchart TB
     PHOTON -- "SpawnBall RPC" --> MM
     MM -- "PhotonNetwork.Instantiate" --> BALL["Bola 
     Ball.cs, IPunObservable, Colisões"]
-    P1["P1"] -- OnTriggerEnter2D --> BALL
+    P1["Player (Componentes) 
+      recebe RPC e OnSerialize"] -- OnTriggerEnter2D --> BALL
     LOBBY["LobbyScreen.cs
     HostGame, JoinGame, Matchmaking"] --> PHOTON
     PLAYER1 --> PHOTON
