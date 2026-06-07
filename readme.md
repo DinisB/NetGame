@@ -57,7 +57,7 @@ Também defino o "Rate" de envio e de serialização para 60, que é o normal em
 
 Durante a partida, o primeiro jogador age como **servidor**, sendo o mesmo que gere o temporizador ```(if (PhotonNetwork.IsMasterClient) matchTime -= 1f)```, as pontuações e GameObjects ```(PhotonNetwork.Instantiate)```.
 
-O segundo jogador apenas pede ao servidor para incrementar a sua pontuação, instanciar e remover objetos, enviando informações sobre o seu estado, o seu **Rigidbody2D**, e da sua equipa, via ```(OnPhotonSerializeView)```, recebendo o resto das informações.
+O segundo jogador apenas pede ao servidor para incrementar a sua pontuação, instanciar e remover objetos, via **Mensagens RPC**, enviando informações sobre o seu estado, o seu **Rigidbody2D**, e da sua equipa, via ```(OnPhotonSerializeView)```, recebendo o resto das informações.
 
 Quando ataca sucessivamente o jogador, envia a equipa e o lado de onde atacou via ```(InstantiationData)```.
 
@@ -72,10 +72,17 @@ De seguida, em vez de teletransportar o **Rigidbody2D**, tenta movê-lo para a p
 Como referido anteriormente, cada jogador verifica as suas colisões, e verifica se está a defender localmente, para não causar *Input Delay*, e se sofrer dano, pede ao servidor para remover a sua bola.
 
 ![Vencedor](vencedor.png)
-Quando o temporizador do servidor acaba, o mesmo envia aos jogadores (A ele próprio e ao outro cliente) uma mensagem a sinalizar o fim de jogo e a indicar que equipa venceu.
+Quando o temporizador do servidor acaba, o mesmo envia aos jogadores (A ele próprio e ao outro cliente) uma mensagem RPC a sinalizar o fim de jogo e a indicar que equipa venceu.
 
 Se um jogador se desconectar da partida, a partida acaba prematuramente e exibe o ecrã de voltar.
 
+#### Limitações
+
+Neste momento, não é possível reentrar numa partida aleatória, em caso de desconexão, a partida simplesmente acaba.
+
+Devido ao uso de **Netcode por delay**, a partida pode ficar instável caso um dos jogadores tenha uma rede insuficiente.
+
+Não é possível inicial partidas por **Lan** pois o jogo necessita dos servidores Photon para ser jogado.
 
 ## Análise de banda larga
 
