@@ -27,6 +27,7 @@ Ao contrário do jogo original, nesta versão cada jogador tem 40 bolas e as par
 - X + Direção (ou sem direção)- Atacar
 - C - Defender
 - Baixo + Z - Saltar de uma plataforma
+- Direção + C - Dash/Quick Roll
 
 #### Como iniciar servidor:
 Para partidas privadas, selecionar "Host".
