@@ -50,6 +50,7 @@ O botão de Matchmaking não funciona com partidas feitas no botão "Host" por d
 ![Menu](menu.png)
 
 Ao começar ou entrar numa partida, o jogador é levado para a sala, onde começa o temporizador global caso haja outro jogador.
+Cada jogador é atribuido uma equipa.
 
 [Usei este vídeo no começo para o menu de matchmaking](https://www.youtube.com/watch?v=C6dXcMo2x40) + [a documentação sobre Matchmaking do Photon.](https://doc.photonengine.com/realtime/current/lobby-and-matchmaking/matchmaking-and-lobby)
 
