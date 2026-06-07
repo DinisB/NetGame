@@ -100,7 +100,7 @@ flowchart TB
         A1["Estado do Jogador
         posição, velocidade, animações"]
         A2["MatchManager
-        Timer, Score, SpawnBall, RPC_EndMatch"]
+        Timer, Score, SpawnBall, EndMatch"]
         A3["Bolas
         Física, posição, equipa"]
     end
