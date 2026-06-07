@@ -43,6 +43,8 @@ Inicialmente pensei em utilizar FishNetworking com servidores Epic, pelo que se 
 
 No menu, existem duas opções para partidas, um modo que permite jogar com um amigo via código, e um modo de Matchmaking que obtém a lista de partidas e tenta entrar numa, ou criar se não existirem partidas abertas.
 
+Ao clicar nos botões, o cliente pede aos servidores **Photon Cloud** para criar uma sala e tornar-se no **Servidor** (ou Master Client), ou juntar-se como **Cliente** à sala.
+
 O botão de Matchmaking não funciona com partidas feitas no botão "Host" por design.
 
 ![Menu](menu.png)
