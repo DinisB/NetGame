@@ -73,6 +73,7 @@ namespace NetGame.Assets.Scripts
 
         public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
         {
+            if (matchTime <= 0) return;
             photonView.RPC("RPC_EndMatch", RpcTarget.All);
             winText.text = "Jogador desconectado.";
         }
