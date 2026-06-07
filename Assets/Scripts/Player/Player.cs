@@ -5,6 +5,9 @@ namespace NetGame.Assets.Scripts
 
     public class Player : MonoBehaviourPun, IPunObservable
     {
+        /// <summary>
+        /// Serve como um "Hub" para as diferentes componentes do cliente.
+        /// </summary>
         [SerializeField]
         private Team team;
 

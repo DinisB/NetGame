@@ -6,6 +6,10 @@ namespace NetGame.Assets.Scripts
 
     public class PlayerCollision : MonoBehaviour
     {
+        /// <summary>
+        /// Verifica colisões, enviando ao servidor mensagens para instanciar as bolas
+        /// e adicionar pontos.
+        /// </summary>
         [SerializeField] private bool hurt = false; // serialize para debug
         private GameObject ballPrefab;
         private int ballLayer;

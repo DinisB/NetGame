@@ -5,8 +5,11 @@ namespace NetGame.Assets.Scripts
     using System.Collections;
     using Photon.Pun;
 
-    public class PlayerAttack : MonoBehaviourPun, IPunObservable
+    public class PlayerAttack : MonoBehaviourPun, IPunObservable 
     {
+        /// <summary>
+        /// Envia o estado do ataque e de onde veio.
+        /// </summary>
         [SerializeField] BoxCollider2D attackCol;
         private Player player;
         private float moveInput;

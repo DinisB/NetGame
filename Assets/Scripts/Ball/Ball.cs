@@ -5,6 +5,10 @@ namespace NetGame.Assets.Scripts
 
     public class Ball : MonoBehaviourPun, IPunObservable
     {
+        /// <summary>
+        /// Recebe o seu estado do servidor, e envia a sua
+        /// posição aos clientes.
+        /// </summary>
         [SerializeField]
         private Team team;
         private SpriteRenderer spriteRenderer;

@@ -7,6 +7,9 @@ namespace NetGame.Assets.Scripts
 
     public class PlayerMovement : MonoBehaviourPun, IPunObservable
     {
+        /// <summary>
+        /// Calcula o movimento e depois envia ao outro cliente.
+        /// </summary>
         [SerializeField] private bool iAmASandBag = false;
 
         private PlayerVisuals playerVisuals;

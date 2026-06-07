@@ -10,6 +10,10 @@ namespace NetGame.Assets.Scripts
 
     public class MatchManager : MonoBehaviourPunCallbacks, IPunObservable
     {
+        /// <summary>
+        /// Gere o estado da partida, transmite e recebe mensagens e dados
+        /// do mesmo para os clientes.
+        /// </summary>
         [SerializeField] private GameObject playerPrefab;
         [SerializeField] private GameObject cameraPrefab;
         [SerializeField] private Transform[] spawnPoint;
